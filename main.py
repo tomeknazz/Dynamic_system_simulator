@@ -1,5 +1,5 @@
-import numpy as np  # Import biblioteki NumPy do operacji numerycznych
 import matplotlib.pyplot as plt  # Import biblioteki do wizualizacji wyników
+import numpy as np  # Import biblioteki NumPy do operacji numerycznych
 
 
 class TransferFunctionSimulator:
@@ -53,36 +53,114 @@ def generate_signal(signal_type, time, amplitude=1, frequency=1, duration=1):
         raise ValueError("Unknown signal type")  # Obsługa błędnego typu sygnału
 
 
+def menu():
+    menu_text = """
+========= Wybierz typ sygnału wejściowego =========
+\t[1] Prostokątny
+\t[2] Trójkątny
+\t[3] Harmoniczny
+\t[q] Wyjście
+===================================================
+"""
+    # Wyświetlenie menu wyboru sygnału
+
+    while True:
+        choice = input(menu_text)
+        if choice == '1':
+            return "rectangular"
+        elif choice == '2':
+            return "triangular"
+        elif choice == '3':
+            return "harmonic"
+        elif choice == 'q':
+            exit(0)
+        else:
+            print("Niepoprawny wybór, spróbuj ponownie.")
+            # przerób to na switch case
+
+
 if __name__ == "__main__":
-    # Parametry układu
-    a1, a0 = 1, 0  # Parametry licznika transmitancji
-    b2, b1, b0 = 1, 2, 1  # Parametry mianownika transmitancji
+    user_choice = ""
+    while True:
+        if user_choice == 0:
+            print("Czy chcesz ponownie wykonać symulację? \n[1] Tak \n[2] Nie")
+            if (input() == "1"):
+                user_choice = 1
+                print("Czy chcesz zmenić parametry układu?")
+                print("Wzór układu G(s) = (a1*s + a0) / (b2*s^2 + b1*s + b0)")
+                while True:
+                    print(f"[1] a1 = {a1}\n[2] a0 = {a0}\n[3] b2 = {b2}\n[4] b1 = {b1}\n[5] b0 = {b0}\n[6] Kp = {Kp}\n[7] Kd = {Kd}\n[8] Zmień rodzaj sygnału\n[9] Nie chce zmieniać parametrów")
+                    match int(input()):
+                        case 1:
+                            a1 = float(input("Podaj parametr a1: "))
+                            continue
+                        case 2:
+                            a0 = float(input("Podaj parametr a0: "))
+                            continue
+                        case 3:
+                            b2 = float(input("Podaj parametr b2: "))
+                            continue
+                        case 4:
+                            b1 = float(input("Podaj parametr b1: "))
+                            continue
+                        case 5:
+                            b0 = float(input("Podaj parametr b0: "))
+                            continue
+                        case 6:
+                            Kp = float(input("Podaj parametr Kp: "))
+                            continue
+                        case 7:
+                            Kd = float(input("Podaj parametr Kd: "))
+                            continue
+                        case 8:
+                            signal_type = menu()
+                            print("Wybrany typ sygnału:", signal_type)
+                            continue
+                        case 9:
+                            break
+                        case default:
+                            print("Niepoprawny wybór, spróbuj ponownie.")
+                            signal_type = 0
+                            continue
+            else:
+                exit(0)
+        if user_choice != 1:
+            signal_type = menu()
+            print("Wybrany typ sygnału:", signal_type)  # Wyświetlenie wybranego typu sygnału
+            print("Wzór układu G(s) = (a1*s + a0) / (b2*s^2 + b1*s + b0)")  # Wzór układu
+            # Parametry układu
+            a1 = float(input("Podaj parametr a1: "))
+            a0 = float(input("Podaj parametr a0: "))
+            b2 = float(input("Podaj parametr b2: "))
+            b1 = float(input("Podaj parametr b1: "))
+            b0 = float(input("Podaj parametr b0: "))
+            # Parametry regulatora PD
+            Kp = float(input("Podaj parametr Kp: "))
+            Kd = float(input("Podaj parametr Kd: "))
 
-    # Parametry regulatora PD
-    Kp, Kd = 10, 2  # Wzmocnienia regulatora PD
+        # Parametry symulacji
+        dt, T = 0.01, 10  # Krok czasowy i całkowity czas symulacji
 
-    # Parametry symulacji
-    dt, T = 0.01, 10  # Krok czasowy i całkowity czas symulacji
+        simulator = TransferFunctionSimulator(a1, a0, b2, b1, b0, dt, T)  # Inicjalizacja symulatora układu
+        controller = PDController(Kp, Kd)  # Inicjalizacja regulatora PD
 
-    simulator = TransferFunctionSimulator(a1, a0, b2, b1, b0, dt, T)  # Inicjalizacja symulatora układu
-    controller = PDController(Kp, Kd)  # Inicjalizacja regulatora PD
+        # Można zmienić na "rectangular" lub "triangular"
+        reference = generate_signal(signal_type, simulator.time)  # Generowanie sygnału referencyjnego
 
-    signal_type = "harmonic"  # Można zmienić na "rectangular" lub "triangular"
-    reference = generate_signal(signal_type, simulator.time)  # Generowanie sygnału referencyjnego
+        y_output = np.zeros_like(simulator.time)  # Inicjalizacja wektora odpowiedzi układu
+        u_control = np.zeros_like(simulator.time)  # Inicjalizacja sygnału sterującego
 
-    y_output = np.zeros_like(simulator.time)  # Inicjalizacja wektora odpowiedzi układu
-    u_control = np.zeros_like(simulator.time)  # Inicjalizacja sygnału sterującego
+        for i in range(1, len(simulator.time)):
+            u_control[i] = controller.control(reference[i], y_output[i - 1], dt)  # Obliczenie wartości sterowania
+            _, y_output = simulator.simulate(u_control)  # Symulacja układu dla sygnału sterującego
 
-    for i in range(1, len(simulator.time)):
-        u_control[i] = controller.control(reference[i], y_output[i - 1], dt)  # Obliczenie wartości sterowania
-        _, y_output = simulator.simulate(u_control)  # Symulacja układu dla sygnału sterującego
-
-    plt.figure()
-    plt.plot(simulator.time, reference, label="Reference")  # Wykres sygnału referencyjnego
-    plt.plot(simulator.time, y_output, label="System Output")  # Wykres odpowiedzi układu
-    plt.legend()
-    plt.xlabel("Time [s]")
-    plt.ylabel("Response")
-    plt.title("System Response with PD Control")
-    plt.grid()
-    plt.show()  # Wyświetlenie wykresu
+        plt.figure()
+        plt.plot(simulator.time, reference, label="Reference")  # Wykres sygnału referencyjnego
+        plt.plot(simulator.time, y_output, label="System Output")  # Wykres odpowiedzi układu
+        plt.legend()
+        plt.xlabel("Time [s]")
+        plt.ylabel("Response")
+        plt.title("System Response with PD Control")
+        plt.grid()
+        plt.show()  # Wyświetlenie wykresu
+        user_choice = 0
