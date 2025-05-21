@@ -1,4 +1,4 @@
-# MMM_project
+# Dynamic_system_simulator
 
 Implementacja symulacji układu dynamicznego opisanego transmitancją drugiego rzędu oraz sterowanie tym układem przy użyciu regulatora PD. Wszystkie obliczenia
 zostały wykonane z użyciem manualnie zaimplementowanych metod numerycznych w języku
