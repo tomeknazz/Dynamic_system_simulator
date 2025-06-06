@@ -76,75 +76,70 @@ def menu():
             exit(0)
         else:
             print("Niepoprawny wybór, spróbuj ponownie.")
-            # przerób to na switch case
 
 
 if __name__ == "__main__":
-    user_choice = ""
-    while True:
-        if user_choice == 0:
-            print("Czy chcesz ponownie wykonać symulację? \n[1] Tak \n[2] Nie")
-            if (input() == "1"):
-                user_choice = 1
-                print("Czy chcesz zmenić parametry układu?")
-                print("Wzór układu G(s) = (a1*s + a0) / (b2*s^2 + b1*s + b0)")
-                while True:
-                    print(f"[1] a1 = {a1}\n[2] a0 = {a0}\n[3] b2 = {b2}\n[4] b1 = {b1}\n[5] b0 = {b0}\n[6] Kp = {Kp}\n[7] Kd = {Kd}\n[8] Zmień rodzaj sygnału\n[9] Nie chce zmieniać parametrów")
-                    match int(input()):
-                        case 1:
-                            a1 = float(input("Podaj parametr a1: "))
-                            continue
-                        case 2:
-                            a0 = float(input("Podaj parametr a0: "))
-                            continue
-                        case 3:
-                            b2 = float(input("Podaj parametr b2: "))
-                            continue
-                        case 4:
-                            b1 = float(input("Podaj parametr b1: "))
-                            continue
-                        case 5:
-                            b0 = float(input("Podaj parametr b0: "))
-                            continue
-                        case 6:
-                            Kp = float(input("Podaj parametr Kp: "))
-                            continue
-                        case 7:
-                            Kd = float(input("Podaj parametr Kd: "))
-                            continue
-                        case 8:
-                            signal_type = menu()
-                            print("Wybrany typ sygnału:", signal_type)
-                            continue
-                        case 9:
-                            break
-                        case default:
-                            print("Niepoprawny wybór, spróbuj ponownie.")
-                            signal_type = 0
-                            continue
-            else:
-                exit(0)
-        if user_choice != 1:
-            signal_type = menu()
-            print("Wybrany typ sygnału:", signal_type)  # Wyświetlenie wybranego typu sygnału
-            print("Wzór układu G(s) = (a1*s + a0) / (b2*s^2 + b1*s + b0)")  # Wzór układu
-            # Parametry układu
-            a1 = float(input("Podaj parametr a1: "))
-            a0 = float(input("Podaj parametr a0: "))
-            b2 = float(input("Podaj parametr b2: "))
-            b1 = float(input("Podaj parametr b1: "))
-            b0 = float(input("Podaj parametr b0: "))
-            # Parametry regulatora PD
-            Kp = float(input("Podaj parametr Kp: "))
-            Kd = float(input("Podaj parametr Kd: "))
-
+    # Domyślne parametry układu
+    default_params = {
+        "a1": 1.0,
+        "a0": 1.0,
+        "b2": 1.0,
+        "b1": 1.0,
+        "b0": 1.0,
+        "Kp": 1.0,
+        "Kd": 1.0
+    }
+    
+    # Inicjalizacja parametrów z domyślnymi wartościami
+    a1 = default_params["a1"]
+    a0 = default_params["a0"]
+    b2 = default_params["b2"]
+    b1 = default_params["b1"]
+    b0 = default_params["b0"]
+    Kp = default_params["Kp"]
+    Kd = default_params["Kd"]
+    
+    signal_type = "rectangular"  # Domyślny typ sygnału
+    run_simulation = True
+    
+    while run_simulation:
+        # Wybór typu sygnału
+        print("\nWybierz typ sygnału:")
+        signal_type = menu()
+        print("Wybrany typ sygnału:", signal_type)
+        
+        # Wybór parametrów
+        print("\nParametry układu G(s) = (a1*s + a0) / (b2*s^2 + b1*s + b0)")
+        print("[1] Użyj domyślnych parametrów (wszystkie = 1.0)")
+        print("[2] Wprowadź własne parametry")
+        
+        param_choice = input("Wybór: ")
+        
+        if param_choice == "2":
+            # Wprowadzanie własnych parametrów
+            a1 = float(input(f"Podaj parametr a1 [{a1}]: ") or a1)
+            a0 = float(input(f"Podaj parametr a0 [{a0}]: ") or a0)
+            b2 = float(input(f"Podaj parametr b2 [{b2}]: ") or b2)
+            b1 = float(input(f"Podaj parametr b1 [{b1}]: ") or b1)
+            b0 = float(input(f"Podaj parametr b0 [{b0}]: ") or b0)
+            Kp = float(input(f"Podaj parametr Kp [{Kp}]: ") or Kp)
+            Kd = float(input(f"Podaj parametr Kd [{Kd}]: ") or Kd)
+        else:
+            # Używamy domyślnych parametrów
+            print("Używam domyślnych parametrów (wszystkie = 1.0)")
+        
+        # Wyświetlenie aktualnych parametrów
+        print("\nAktualne parametry:")
+        print(f"a1 = {a1}, a0 = {a0}")
+        print(f"b2 = {b2}, b1 = {b1}, b0 = {b0}")
+        print(f"Kp = {Kp}, Kd = {Kd}")
+        
         # Parametry symulacji
         dt, T = 0.01, 10  # Krok czasowy i całkowity czas symulacji
 
         simulator = TransferFunctionSimulator(a1, a0, b2, b1, b0, dt, T)  # Inicjalizacja symulatora układu
         controller = PDController(Kp, Kd)  # Inicjalizacja regulatora PD
 
-        # Można zmienić na "rectangular" lub "triangular"
         reference = generate_signal(signal_type, simulator.time)  # Generowanie sygnału referencyjnego
 
         y_output = np.zeros_like(simulator.time)  # Inicjalizacja wektora odpowiedzi układu
@@ -163,4 +158,67 @@ if __name__ == "__main__":
         plt.title("System Response with PD Control")
         plt.grid()
         plt.show()  # Wyświetlenie wykresu
-        user_choice = 0
+        
+        # Pytanie o ponowne uruchomienie symulacji
+        print("\nCzy chcesz ponownie wykonać symulację?")
+        print("[1] Tak")
+        print("[2] Nie")
+        if input() != "1":
+            run_simulation = False
+        else:
+            # Pytanie o zmianę parametrów
+            print("\nCo chcesz zrobić?")
+            print("[1] Użyć aktualnych parametrów")
+            print("[2] Zmienić parametry")
+            print("[3] Wrócić do domyślnych parametrów")
+            modify_choice = input()
+            
+            if modify_choice == "2":
+                print("\nZmienianie parametrów:")
+                while True:
+                    print(f"[1] a1 = {a1}\n[2] a0 = {a0}\n[3] b2 = {b2}\n[4] b1 = {b1}\n[5] b0 = {b0}\n[6] Kp = {Kp}\n[7] Kd = {Kd}")
+                    print("[8] Zmień rodzaj sygnału\n[9] Gotowe - kontynuuj symulację")
+                    
+                    try:
+                        param_to_change = int(input("Wybierz parametr do zmiany: "))
+                        if param_to_change == 9:
+                            break
+                        elif param_to_change == 8:
+                            signal_type = menu()
+                            print("Wybrany typ sygnału:", signal_type)
+                        elif 1 <= param_to_change <= 7:
+                            param_names = ["a1", "a0", "b2", "b1", "b0", "Kp", "Kd"]
+                            param_vars = [a1, a0, b2, b1, b0, Kp, Kd]
+                            param_name = param_names[param_to_change-1]
+                            current_value = param_vars[param_to_change-1]
+                            
+                            new_value = input(f"Podaj nową wartość dla {param_name} [{current_value}]: ")
+                            if new_value:
+                                if param_to_change == 1:
+                                    a1 = float(new_value)
+                                elif param_to_change == 2:
+                                    a0 = float(new_value)
+                                elif param_to_change == 3:
+                                    b2 = float(new_value)
+                                elif param_to_change == 4:
+                                    b1 = float(new_value)
+                                elif param_to_change == 5:
+                                    b0 = float(new_value)
+                                elif param_to_change == 6:
+                                    Kp = float(new_value)
+                                elif param_to_change == 7:
+                                    Kd = float(new_value)
+                        else:
+                            print("Niepoprawny wybór, spróbuj ponownie.")
+                    except ValueError:
+                        print("Podaj poprawną liczbę.")
+            elif modify_choice == "3":
+                # Przywrócenie domyślnych parametrów
+                a1 = default_params["a1"]
+                a0 = default_params["a0"]
+                b2 = default_params["b2"]
+                b1 = default_params["b1"]
+                b0 = default_params["b0"]
+                Kp = default_params["Kp"]
+                Kd = default_params["Kd"]
+                print("Przywrócono domyślne parametry (wszystkie = 1.0)")
