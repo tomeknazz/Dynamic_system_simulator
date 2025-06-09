@@ -1,5 +1,5 @@
 import matplotlib.pyplot as plt  # Import biblioteki do wizualizacji wyników
-import numpy as np  # Import biblioteki NumPy do operacji numerycznych
+import numpy as np  # Import biblioteki NumPy do macierzy
 
 
 class TransferFunctionSimulator:
@@ -34,7 +34,7 @@ class PDController:
 
     def control(self, ref, y, dt):
         # Obliczanie wartości sterowania na podstawie regulatora PD
-        error = ref - y  # Obliczenie błędu
+        error = ref - y  # Obliczenie błędu - sprzężenie zwrotne
         de = (error - self.prev_error) / dt  # Przybliżona pochodna błędu
         self.prev_error = error  # Aktualizacja błędu
         return self.Kp * error + self.Kd * de  # Wyliczenie sygnału sterującego
@@ -80,7 +80,7 @@ def menu():
 if __name__ == "__main__":
     # Domyślne parametry układu
     default_params = {
-        "a1": 1.0,
+        "a1": 0.1,
         "a0": 1.0,
         "b2": 1.0,
         "b1": 1.0,
@@ -109,7 +109,7 @@ if __name__ == "__main__":
         
         # Wybór parametrów
         print("\nParametry układu G(s) = (a1*s + a0) / (b2*s^2 + b1*s + b0)")
-        print("[1] Użyj domyślnych parametrów (wszystkie = 1.0)")
+        print("[1] Użyj domyślnych parametrów (a1 = 0.1, reszta = 1.0)")
         print("[2] Wprowadź własne parametry")
         
         param_choice = input("Wybór: ")
@@ -125,7 +125,7 @@ if __name__ == "__main__":
             Kd = float(input(f"Podaj parametr Kd [{Kd}]: ") or Kd)
         else:
             # Używamy domyślnych parametrów
-            print("Używam domyślnych parametrów (wszystkie = 1.0)")
+            print("Używam domyślnych parametrów (a1 = 0.1, reszta = 1.0)")
         
         # Flaga kontrolująca czy uruchomić symulację
         run_sim_now = True
