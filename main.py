@@ -18,7 +18,8 @@ class TransferFunctionSimulator:
         x1, x2 = 0, 0
         for i in range(1, len(self.time)):
             x1_dot = x2
-            x2_dot = (-self.b1 * x2 - self.b0 * x1 + self.a1 * u[i] + self.a0 * u[i]) / self.b2
+            u_dot = (u[i] - u[i - 1]) / self.dt
+            x2_dot = (-self.b1 * x2 - self.b0 * x1 + self.a1 * u_dot + self.a0 * u[i]) / self.b2
             x1 += x1_dot * self.dt
             x2 += x2_dot * self.dt
             self.y[i] = x1
